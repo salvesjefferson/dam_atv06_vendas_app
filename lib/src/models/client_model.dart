@@ -5,12 +5,14 @@ class ClientModel {
   final String name;
   final String email;
   final String phone;
+  final DateTime? birthDate;
 
   ClientModel({
     String? id,
     required this.name,
     required this.email,
     required this.phone,
+    this.birthDate,
   }) : id = id ?? const Uuid().v4();
 
   ClientModel copyWith({
@@ -18,12 +20,14 @@ class ClientModel {
     String? name,
     String? email,
     String? phone,
+    DateTime? birthDate,
   }) {
     return ClientModel(
       id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      birthDate: birthDate ?? this.birthDate,
     );
   }
 
@@ -33,6 +37,7 @@ class ClientModel {
       'name': name,
       'email': email,
       'phone': phone,
+      'birthDate': birthDate?.toIso8601String(),
     };
   }
 
@@ -42,6 +47,9 @@ class ClientModel {
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       phone: map['phone'] ?? '',
+      birthDate: map['birthDate'] != null
+          ? DateTime.parse(map['birthDate'])
+          : null,
     );
   }
 
@@ -53,4 +61,24 @@ class ClientModel {
 
   @override
   int get hashCode => id.hashCode;
+
+  int? get age {
+    if (birthDate == null) {
+      return null;
+    }
+
+    final today = DateTime.now();
+    int age = today.year - birthDate!.year;
+
+    final hasNotHadBirthdayThisYear =
+        today.month < birthDate!.month ||
+        (today.month == birthDate!.month && today.day < birthDate!.day);
+
+    if (hasNotHadBirthdayThisYear) {
+      age--;
+    }
+
+    return age;
+  }  
+
 }

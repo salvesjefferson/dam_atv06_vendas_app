@@ -17,6 +17,7 @@ class _ClientFormPageState extends State<ClientFormPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  DateTime? _birthDate;
 
   bool get _isEditing => widget.client != null;
 
@@ -29,6 +30,7 @@ class _ClientFormPageState extends State<ClientFormPage> {
       _nameController.text = client.name;
       _emailController.text = client.email;
       _phoneController.text = client.phone;
+      _birthDate = client.birthDate;
     }
   }
 
@@ -38,6 +40,33 @@ class _ClientFormPageState extends State<ClientFormPage> {
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectBirthDate() async {
+    final today = DateTime.now();
+
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? today,
+      firstDate: DateTime(1900),
+      //impedir que selecione após o dia atual
+      lastDate: today,
+    );
+
+    if (selectedDate == null) {
+      return;
+    }
+
+    setState(() {
+      _birthDate = selectedDate;
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+
+    return '$day/$month/${date.year}';
   }
 
   Future<void> _saveForm() async {
@@ -53,11 +82,17 @@ class _ClientFormPageState extends State<ClientFormPage> {
             name: name,
             email: email,
             phone: phone,
+            birthDate: _birthDate,
           ),
         );
       } else {
         await clientViewModel.addClient(
-          ClientModel(name: name, email: email, phone: phone),
+          ClientModel(
+            name: name,
+            email: email,
+            phone: phone,
+            birthDate: _birthDate,
+          ),
         );
       }
 
@@ -66,7 +101,9 @@ class _ClientFormPageState extends State<ClientFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _isEditing ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!',
+              _isEditing 
+                  ? 'Cliente atualizado com sucesso!' 
+                  : 'Cliente cadastrado com sucesso!',
             ),
           ),
         );
@@ -124,6 +161,21 @@ class _ClientFormPageState extends State<ClientFormPage> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _selectBirthDate,
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Data de Nascimento (Opcional)',
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                  child: Text(
+                    _birthDate != null
+                        ? _formatDate(_birthDate!)
+                        : 'Selecionar data',
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
