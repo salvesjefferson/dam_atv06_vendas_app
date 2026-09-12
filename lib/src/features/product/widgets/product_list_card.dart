@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:vendas_app/src/application/helpers/currency_helper.dart';
@@ -30,7 +31,10 @@ class ProductListCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: SizedBox.square(
                 dimension: 72,
-                child: _ProductImage(imageUrl: product.imageUrl),
+                child: _ProductImage(
+                  imageUrl: product.imageUrl,
+                  imagePath: product.imagePath,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -91,9 +95,13 @@ class ProductListCard extends StatelessWidget {
 }
 
 class _ProductImage extends StatelessWidget {
-  const _ProductImage({required this.imageUrl});
+  const _ProductImage({
+    required this.imageUrl,
+    required this.imagePath,
+  });
 
   final String imageUrl;
+  final String? imagePath;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +113,24 @@ class _ProductImage extends StatelessWidget {
       ),
     );
 
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      final file = File(imagePath!);
+
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildNetworkImage(placeholder);
+          },
+        );
+      }
+    }
+
+    return _buildNetworkImage(placeholder);
+  }
+
+  Widget _buildNetworkImage(Widget placeholder) {
     if (imageUrl.isEmpty) {
       return placeholder;
     }

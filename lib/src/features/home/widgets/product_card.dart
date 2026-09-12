@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:vendas_app/src/application/helpers/currency_helper.dart';
@@ -53,31 +54,10 @@ class ProductCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      product.imageUrl.isNotEmpty
-                          ? Image.network(
-                              product.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const ColoredBox(
-                                color: Color(0xFFEDEDED),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    size: 40,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : const ColoredBox(
-                              color: Color(0xFFEDEDED),
-                              child: Center(
-                                child: Icon(
-                                  Icons.image,
-                                  size: 40,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
+                      _ProductImage(
+                        imagePath: product.imagePath,
+                        imageUrl: product.imageUrl,
+                      ),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -162,6 +142,58 @@ class ProductCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProductImage extends StatelessWidget {
+  const _ProductImage({
+    required this.imagePath,
+    required this.imageUrl,
+  });
+
+  final String? imagePath;
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    const placeholder = ColoredBox(
+      color: Color(0xFFEDEDED),
+      child: Center(
+        child: Icon(
+          Icons.image,
+          size: 40,
+          color: Colors.grey,
+        ),
+      ),
+    );
+
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      final file = File(imagePath!);
+
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildNetworkImage(placeholder);
+          },
+        );
+      }
+    }
+
+    return _buildNetworkImage(placeholder);
+  }
+
+  Widget _buildNetworkImage(Widget placeholder) {
+    if (imageUrl.isEmpty) {
+      return placeholder;
+    }
+
+    return Image.network(
+      imageUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => placeholder,
     );
   }
 }
