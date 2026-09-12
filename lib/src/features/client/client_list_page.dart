@@ -33,14 +33,21 @@ class ClientListPage extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final client = clientViewModel.clients[index];
-
                 return ClientListCard(
                   client: client,
+
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/clients/detail',
+                    arguments: client,
+                  ),
+
                   onEdit: () => Navigator.pushNamed(
                     context,
                     '/clients/form',
                     arguments: client,
                   ),
+
                   onDelete: () => _confirmDelete(
                     context,
                     clientViewModel,

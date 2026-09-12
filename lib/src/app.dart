@@ -15,6 +15,7 @@ import 'features/category/category_list_page.dart';
 import 'features/settings/settings_viewmodel.dart';
 import 'models/client_model.dart';
 import 'models/product_model.dart';
+import 'features/client/client_detail_page.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -45,6 +46,7 @@ class App extends StatelessWidget {
               '/categories': (context) => const CategoryListPage(),
               '/orders': (context) => const OrderListPage(),
               '/orders/detail': (context) => const OrderDetailPage(),
+              '/clients/detail': (context) => const ClientDetailPage(),
             },
             onGenerateRoute: (settings) {
               if (settings.name == '/cart') {

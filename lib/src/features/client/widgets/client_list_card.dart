@@ -8,79 +8,85 @@ class ClientListCard extends StatelessWidget {
     required this.client,
     required this.onEdit,
     required this.onDelete,
+    required this.onTap,
   });
 
   final ClientModel client;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final initial = client.name.trim().isEmpty ? '?' : client.name.trim().substring(0, 1).toUpperCase();
-
+    
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: colorScheme.primaryContainer,
-              foregroundColor: colorScheme.onPrimaryContainer,
-              child: Text(
-                initial,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: colorScheme.primaryContainer,
+                foregroundColor: colorScheme.onPrimaryContainer,
+                child: Text(
+                  initial,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    client.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      client.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    const SizedBox(height: 6),
+                    _ClientDetail(
+                      icon: Icons.email_outlined,
+                      value: client.email,
+                    ),
+                    const SizedBox(height: 4),
+                    _ClientDetail(
+                      icon: Icons.phone_outlined,
+                      value: client.phone,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Editar cliente',
                   ),
-                  const SizedBox(height: 6),
-                  _ClientDetail(
-                    icon: Icons.email_outlined,
-                    value: client.email,
-                  ),
-                  const SizedBox(height: 4),
-                  _ClientDetail(
-                    icon: Icons.phone_outlined,
-                    value: client.phone,
+                  IconButton(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline),
+                    color: colorScheme.error,
+                    tooltip: 'Excluir cliente',
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Editar cliente',
-                ),
-                IconButton(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline),
-                  color: colorScheme.error,
-                  tooltip: 'Excluir cliente',
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+       ),
       ),
     );
   }
@@ -129,6 +135,7 @@ Widget previewClientListCard() {
           ),
           onEdit: () {},
           onDelete: () {},
+          onTap: () {},
         ),
       ),
     ),
