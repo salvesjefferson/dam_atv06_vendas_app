@@ -7,12 +7,14 @@ class ProductModel {
   final String imageUrl;
   final String category;
   final bool isFavorite;
+  final String? imagePath;
 
   ProductModel({
     String? id,
     required this.name,
     required this.price,
     required this.imageUrl,
+    this.imagePath,
     this.category = 'Geral',
     this.isFavorite = false,
   }) : id = id ?? const Uuid().v4();
@@ -24,6 +26,7 @@ class ProductModel {
     String? imageUrl,
     String? category,
     bool? isFavorite,
+    String? imagePath,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -32,6 +35,7 @@ class ProductModel {
       imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
       isFavorite: isFavorite ?? this.isFavorite,
+      imagePath: imagePath ?? this.imagePath,
     );
   }
 
@@ -41,6 +45,7 @@ class ProductModel {
       'name': name,
       'price': price,
       'imageUrl': imageUrl,
+      'imagePath': imagePath,
       'category': category,
       'isFavorite': isFavorite,
     };
@@ -52,6 +57,7 @@ class ProductModel {
       name: map['name'] ?? '',
       price: map['price']?.toDouble() ?? 0.0,
       imageUrl: map['imageUrl'] ?? '',
+      imagePath: map['imagePath'],
       category: map['category'] ?? 'Geral',
       isFavorite: map['isFavorite'] ?? false,
     );

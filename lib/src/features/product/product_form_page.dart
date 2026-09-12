@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:vendas_app/src/models/product_model.dart';
 import 'package:vendas_app/src/features/product/product_viewmodel.dart';
 import 'package:vendas_app/src/features/category/category_viewmodel.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key, this.product});
@@ -18,7 +20,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   String? _selectedCategory;
-  final _imageUrlController = TextEditingController();
+  //final _imageUrlController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  String? _imagePath;
 
   bool get _isEditing => widget.product != null;
 
@@ -31,7 +35,8 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _nameController.text = product.name;
       _priceController.text = product.price.toStringAsFixed(2);
       _selectedCategory = product.category;
-      _imageUrlController.text = product.imageUrl;
+      //_imageUrlController.text = product.imageUrl;
+      _imagePath = product.imagePath;
     }
   }
 
@@ -39,9 +44,53 @@ class _ProductFormPageState extends State<ProductFormPage> {
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
-    _imageUrlController.dispose();
+    //_imageUrlController.dispose();
     super.dispose();
   }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? image = await _imagePicker.pickImage(
+      source: source,
+    );
+
+    if (image == null) {
+      return;
+    }
+
+    setState(() {
+      _imagePath = image.path;
+    });
+  }
+
+  void _showImageSourceOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Câmera'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeria'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }  
 
   Future<void> _saveForm() async {
     if (_formKey.currentState!.validate()) {
@@ -52,7 +101,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
       final productViewModel = context.read<ProductViewModel>();
       final name = _nameController.text.trim();
       final price = double.parse(_priceController.text.trim().replaceFirst(',', '.'));
-      final imageUrl = _imageUrlController.text.trim();
+      //final imageUrl = _imageUrlController.text.trim();
 
       if (_isEditing) {
         await productViewModel.updateProduct(
@@ -60,7 +109,8 @@ class _ProductFormPageState extends State<ProductFormPage> {
             name: name,
             price: price,
             category: category,
-            imageUrl: imageUrl,
+            //imageUrl: imageUrl,
+            imagePath: _imagePath,
           ),
         );
       } else {
@@ -69,7 +119,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
             name: name,
             price: price,
             category: category,
-            imageUrl: imageUrl,
+            //imageUrl: imageUrl,
+            imageUrl: '',
+            imagePath: _imagePath,
           ),
         );
       }
@@ -161,9 +213,46 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(labelText: 'URL da Imagem (Opcional)'),
+              //para adicionar area clicável
+              InkWell(
+                onTap: _showImageSourceOptions,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _imagePath != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(_imagePath!),
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo,
+                              size: 48,
+                            ),
+                            SizedBox(height: 8),
+                            Text('Adicionar foto'),
+                            SizedBox(height: 4),
+                            Text(
+                              'Opcional',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
