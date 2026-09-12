@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+
 import 'package:vendas_app/src/models/product_model.dart';
 import 'package:vendas_app/src/features/product/product_viewmodel.dart';
 import 'package:vendas_app/src/features/category/category_viewmodel.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key, this.product});
@@ -96,48 +100,96 @@ class _ProductFormPageState extends State<ProductFormPage> {
     if (_formKey.currentState!.validate()) {
       final categoryViewModel = context.read<CategoryViewModel>();
       final categories = categoryViewModel.categories;
-      final category = _selectedCategory ?? (categories.isNotEmpty ? categories.first.name : 'Geral');
+
+      final category = _selectedCategory ??
+          (categories.isNotEmpty ? categories.first.name : 'Geral');
 
       final productViewModel = context.read<ProductViewModel>();
+
       final name = _nameController.text.trim();
-      final price = double.parse(_priceController.text.trim().replaceFirst(',', '.'));
-      //final imageUrl = _imageUrlController.text.trim();
+
+      final price = double.parse(
+        _priceController.text.trim().replaceFirst(',', '.'),
+      );
 
       if (_isEditing) {
+        final imagePath = await _saveImage(
+          widget.product!.id,
+        );
+
         await productViewModel.updateProduct(
           widget.product!.copyWith(
             name: name,
             price: price,
             category: category,
-            //imageUrl: imageUrl,
-            imagePath: _imagePath,
+            imagePath: imagePath,
           ),
         );
       } else {
+        final product = ProductModel(
+          name: name,
+          price: price,
+          category: category,
+          imageUrl: '',
+        );
+
+        final imagePath = await _saveImage(
+          product.id,
+        );
+
         await productViewModel.addProduct(
-          ProductModel(
-            name: name,
-            price: price,
-            category: category,
-            //imageUrl: imageUrl,
-            imageUrl: '',
-            imagePath: _imagePath,
+          product.copyWith(
+            imagePath: imagePath,
           ),
         );
       }
 
       if (mounted) {
         Navigator.pop(context);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _isEditing ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!',
+              _isEditing
+                  ? 'Produto atualizado com sucesso!'
+                  : 'Produto cadastrado com sucesso!',
             ),
           ),
         );
       }
     }
   }
+
+  Future<String?> _saveImage(String productId) async {
+    if (_imagePath == null) {
+      return null;
+    }
+
+    final sourceFile = File(_imagePath!);
+
+    if (!await sourceFile.exists()) {
+      return null;
+    }
+
+    final directory = await getApplicationDocumentsDirectory();
+
+    final extension = p.extension(sourceFile.path);
+
+    final destinationPath = p.join(
+      directory.path,
+      '$productId$extension',
+    );
+
+    // Se a imagem já estiver salva nesse local, não precisa copiá-la novamente.
+    if (sourceFile.path == destinationPath) {
+      return destinationPath;
+    }
+
+    final savedFile = await sourceFile.copy(destinationPath);
+
+    return savedFile.path;
+  }
+
 
   @override
   Widget build(BuildContext context) {
